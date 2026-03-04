@@ -1,0 +1,21 @@
+{
+  "name": "allgood-marketplace",
+  "owner": {
+    "name": "Mary AllGood"
+  },
+  "metadata": {
+    "description": "AllGood plugins to help Marketing teams get more done"
+  },
+  "plugins": [
+    {
+      "name": "allgood-plugin",
+      "source": "./plugins/allgood-plugin",
+      "description": "allGood is happy to share some of our skills to help Marketing teams get more done",
+      "version": "1.0.0",
+      "author": {
+        "name": "Mary AllGood"
+      },
+      "homepage": "https://allgoodhq.com/"
+    }
+  ]
+}
