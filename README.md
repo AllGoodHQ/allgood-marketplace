@@ -1,5 +1,6 @@
 
-[![Package & Release Skills](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/package-skills.yml/badge.svg?branch=main)](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/package-skills.yml)
+
+[![Release](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/release.yml)     [![Skills Release](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/package-skills.yml/badge.svg?branch=main)](https://github.com/AllGoodHQ/allgood-marketplace/actions/workflows/package-skills.yml)
 
 
 # Free Claude Skills for Marketing Ops
