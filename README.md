@@ -4,9 +4,14 @@
 
 # Free Claude Skills for Marketing Ops
 
-— Built by Mary's Team
+<img src="plugins/allgood-plugin/skills/mary-email-performance/assets/mary-logo.png" width="80" alt="Mary" /> — Built by Mary's Team
 
 
 You know the tasks. The email analysis that takes an hour. The Marketo template nobody wants to touch. The UTMs that haven't been audited since 2023. We built Claude Code skills that handle all of it. They're free. And they're yours.
 
+## Skills
 
+| Skill | Description | Download |
+|-------|-------------|----------|
+| **Email Performance Analysis** | Upload a Marketo Email Performance Report and get a branded DOCX back — executive summary, benchmarks, traffic-light flags, and a prioritized action plan. No more spreadsheet squinting. | [![Download](https://img.shields.io/github/v/release/AllGoodHQ/allgood-marketplace?label=download&style=flat-square)](https://github.com/AllGoodHQ/allgood-marketplace/releases/latest/download/mary-email-performance.skill) |
+| **Marketo Template Analysis** | 2,000 lines of HTML. Nobody remembers who wrote it. Paste it in — Claude reads, audits, and tells you what to fix. No code skills needed. | Coming soon |
