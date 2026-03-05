@@ -1,0 +1,41 @@
+name: Package & Release Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/allgood-plugin/skills/**"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package skills
+        run: |
+          chmod +x scripts/package-skill.sh
+          for skill_dir in plugins/allgood-plugin/skills/*/; do
+            if [ -f "$skill_dir/SKILL.md" ]; then
+              ./scripts/package-skill.sh "$skill_dir" dist
+            fi
+          done
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: skills-${{ steps.sha.outputs.short }}
+          name: Skills build ${{ steps.sha.outputs.short }}
+          body: |
+            Auto-built skill packages from ${{ github.sha }}.
+
+            Download the latest `.skill` files below.
+          files: dist/*.skill
+          make_latest: true

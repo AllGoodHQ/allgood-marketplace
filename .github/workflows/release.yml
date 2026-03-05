@@ -1,0 +1,65 @@
+name: Release Plugin
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          # Strip leading 'v' if present
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $VERSION"
+
+      - name: Update plugin.json version
+        run: |
+          jq --arg v "${{ steps.version.outputs.version }}" \
+            '.version = $v' \
+            plugins/allgood-plugin/.claude-plugin/plugin.json > tmp.json \
+            && mv tmp.json plugins/allgood-plugin/.claude-plugin/plugin.json
+
+      - name: Update marketplace.json version
+        run: |
+          jq --arg v "${{ steps.version.outputs.version }}" \
+            '.plugins[0].version = $v' \
+            .claude-plugin/marketplace.json > tmp.json \
+            && mv tmp.json .claude-plugin/marketplace.json
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add plugins/allgood-plugin/.claude-plugin/plugin.json .claude-plugin/marketplace.json
+          git commit -m "Bump plugin version to ${{ steps.version.outputs.version }}" || echo "No changes to commit"
+          git push
+
+      - name: Package skills
+        run: |
+          chmod +x scripts/package-skill.sh
+          for skill_dir in plugins/allgood-plugin/skills/*/; do
+            if [ -f "$skill_dir/SKILL.md" ]; then
+              ./scripts/package-skill.sh "$skill_dir" dist
+            fi
+          done
+
+      - name: Attach .skill files to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for f in dist/*.skill; do
+            gh release upload "${{ github.event.release.tag_name }}" "$f" --clobber
+          done
