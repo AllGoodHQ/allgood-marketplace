@@ -14,7 +14,7 @@ description: >
 
 Mary analyzes a Marketo Email Performance Report and produces a structured, branded DOCX
 report with executive summary, key findings, benchmark comparisons, and a prioritized
-action plan — condensed to 3 pages (2 content + 1 appendix).
+action plan — condensed to 2 pages.
 
 ---
 
@@ -29,6 +29,9 @@ Adapt the analysis based on what the user asked:
   to matching rows before analysis. Still run the full workflow on the filtered set.
 - **"Quick summary" or "just the highlights"** → skip the full DOCX. Instead, respond
   in chat with: program health score, top 3 findings, and top 3 action items.
+- **"Break down by campaign type"** or **"show me by type"** → include a Performance
+  by Campaign Type table as an additional page after the Action Plan. One row per
+  detected email type with metrics vs benchmarks.
 - **"Compare X vs Y"** → focus on a side-by-side of the named campaigns or types
 - **No specific ask / generic request** → run the full default analysis (all steps)
 
@@ -104,7 +107,7 @@ Python code (pandas) to:
    - **A/B test emails** — set aside for the dedicated A/B section; link variants by
      campaign name for side-by-side comparison
    - **Campaign series** — group Email 1/2/3 etc. together to show funnel drop-off
-   - **Low volume** — noted in an appendix, excluded from all averages
+   - **Low volume** — excluded from all averages
 
 ---
 
@@ -173,7 +176,6 @@ After generating the DOCX, run through every item below. Fix any failures before
 - [ ] Every email in the analysis pool (Sent ≥ 100) has a detected type — no "Unknown" rows
 - [ ] Every 🔴 flagged email has a callout stating the specific threshold breached
 - [ ] Exec Summary references specific numbers — no vague language like "some emails underperformed"
-- [ ] Each Campaign Type section uses the correct benchmark set for that type
 - [ ] Campaign series (Email 1/2/3) are analyzed as a funnel, not independent rows
 - [ ] Action plan has at least one item in each horizon: Immediate, 30-day, 90-day
 - [ ] No metric contradicts another (e.g. CTR > OR without an MPP/bot note)
@@ -183,6 +185,6 @@ After generating the DOCX, run through every item below. Fix any failures before
 - [ ] Both logos are present or clearly placeholder-labeled
 - [ ] Footer on every page shows "Powered by allGood" with allGood logo
 - [ ] Cover page shows centered title, subtitle, mary-logo, and allGood branding
-- [ ] Report fits within 3-page budget (2 content + 1 appendix)
+- [ ] Report fits within 2-page budget (exec summary + key findings, then action plan)
 
 If any check fails, fix it and re-run the checklist before outputting the file.

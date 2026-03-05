@@ -49,11 +49,11 @@ Header/Footer, etc.).
 
 ### Page Budget
 
-Target length: 2 content pages + 1 appendix page (3 pages total)
-- **Page 1:** Title block, Executive Summary (narrative + Program Snapshot + Key Metrics
-  vs Benchmarks table + Key Findings)
-- **Page 2:** Performance by Campaign Type table, Action Plan (all tiers)
-- **Page 3 (Appendix):** Success Metrics / 90-Day Targets, Low Volume emails table
+Target length: 2 content pages (cover + 2 content = 3 pages total). Keep it tight — no filler sections.
+- **Cover Page:** Title block, logos, branding (keep as-is)
+- **Page 1:** Executive Summary (prose) + Key Findings
+- **--- page break ---**
+- **Page 2:** Action Plan (compact tables by tier)
 
 ### Cover Page / Title Block
 
@@ -76,38 +76,18 @@ No filler text — just the title, subtitle, logos, and branding.
 
 ### Section 1: Executive Summary (~½ page)
 
-One paragraph of 3–5 sentences that tells the full story. Include:
+One paragraph of 3–5 sentences that tells the full story. The exec summary is
+prose-driven narrative — no tables. Mention:
 - Total emails analyzed (excluding low-volume)
 - Overall program health score with the emoji (🟢 / 🟡 / 🔴)
 - The single most important positive finding
 - The single most important issue requiring action
 - One forward-looking sentence
 
-Then a **Program Snapshot table** — 2 columns, ~6 rows:
-
-| Metric | Your Program |
-|---|---|
-| Emails Analyzed | N (+ X low volume excluded) |
-| Total Sent (≥100 sends) | X,XXX,XXX |
-| Overall Delivery Rate | XX.X% 🟢/🟡/🔴 |
-| Weighted Open Rate | XX.X% 🟢/🟡/🔴 |
-| Weighted CTR | X.X% 🟢/🟡/🔴 |
-| Weighted Unsubscribe Rate | X.XX% 🟢/🟡/🔴 |
-
-Then a **Key Metrics vs Benchmarks table** — comparing program-level weighted
-metrics to SaaS averages and healthy targets (consolidates the former standalone
-Benchmarks Comparison section):
-
-| Metric | This Program | SaaS Avg | Healthy Target | Status |
-|---|---|---|---|---|
-| Delivery Rate | | 94–97% | > 98% | 🟢/🟡/🔴 |
-| Open Rate (marketing) | | 19–25% | 25–35% | |
-| CTR (marketing) | | 1.2–1.9% | 2–2.5% | |
-| Click-to-Open Rate | | 8–12% | 10–15% | |
-| Unsubscribe Rate | | 0.1–0.2% | < 0.15% | |
-
-Include a brief note below the table about the MPP caveat on open rates and
-bot-click caveat on CTR, written in Mary's voice.
+Numbers should appear naturally in the prose (e.g. "CTR of 3.1% exceeds the
+SaaS healthy target" or "delivery rate of 99.2% is well above the 98% healthy
+threshold"). Include the MPP/bot-click caveat as a brief parenthetical in the
+prose, not a standalone note.
 
 Then **Key Findings** — tight bullets organized into three tiers.
 Maximum 10 findings total. Each finding is 1–2 sentences: what was observed + why
@@ -123,26 +103,9 @@ metrics and thresholds breached.
 Never invent positives. If everything is in Caution territory, say so honestly:
 "There are no standout performers yet — the program has room to grow across the board."
 
-### Section 2: Performance by Campaign Type
+### Section 2: Action Plan
 
-One compact table with one row per detected email type. Keep narrative to a single
-summary sentence above the table (e.g. "allGood | Mary analyzed X emails across
-Y campaign types.").
-
-**Table format:**
-
-| Campaign Type | Count | Avg Open Rate | Avg CTR | Avg CTOR | Avg Unsub | vs Benchmark |
-|---|---|---|---|---|---|---|
-| [Type] | N | XX% | X.X% | XX% | X.XX% | 🟢/🟡/🔴 |
-
-If a campaign series exists within a type, include a compact funnel sub-table:
-
-| Email | Sent | Open Rate | CTR | Unsub | vs. Prior |
-|---|---|---|---|---|---|
-| Email 1 | X,XXX | XX% | X.X% | X.XX% | — |
-| Email 2 | X,XXX | XX% | X.X% | X.XX% | ↓ X% |
-
-### Section 3: Action Plan
+Insert a **DOCX page break** before the Action Plan so it starts on its own page.
 
 Structured as a compact table grouped by priority tier. Maximum 8 recommendations
 total across all tiers. Prioritize 🔴 flags first.
@@ -168,26 +131,6 @@ total across all tiers. Prioritize 🔴 flags first.
 
 Each action must be specific and data-backed — not "improve subject lines" but
 "A/B test subject lines on [specific campaign] where OR is X% below benchmark."
-
-### Appendix
-
-**Success Metrics / 90-Day Targets** — a table of target metrics the program should
-aim for over the next quarter, based on the current baseline and healthy targets:
-
-| Metric | Current | 30-Day Target | 90-Day Target |
-|---|---|---|---|
-| Open Rate | XX% | XX% | XX% |
-| CTR | X.X% | X.X% | X.X% |
-| Unsubscribe Rate | X.XX% | X.XX% | X.XX% |
-
-**Low Volume Emails** — a simple table listing all emails with Sent < 100:
-
-| Email Name | Sent | Delivered | Open Rate | Note |
-|---|---|---|---|---|
-| [Name] | X | X | X% | Low volume — excluded from analysis |
-
-Include one sentence: "These emails were excluded from all program averages and
-benchmarks due to insufficient send volume for statistical significance."
 
 ---
 
@@ -257,11 +200,6 @@ benchmarks due to insufficient send volume for statistical significance."
 - Status rows: use traffic light fills from Section 3 above
 - Cell padding: `{ top: 80, bottom: 80, left: 120, right: 120 }`
 - All borders: `BorderStyle.SINGLE`, size 1, color `#CCCCCC`
-
-**Standard column widths for the Campaign Type table (total: 10,320 DXA):**
-Campaign Type: 2,200 | Count: 800 | Open Rate: 1,400 | CTR: 1,200 |
-CTOR: 1,200 | Unsub: 1,200 | vs Benchmark: 2,320
-Total: 10,320 ✓
 
 ---
 

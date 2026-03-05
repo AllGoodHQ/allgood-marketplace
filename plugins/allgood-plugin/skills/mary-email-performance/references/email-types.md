@@ -130,8 +130,7 @@ Any email with Sent < 100 is statistically unreliable for performance benchmarki
 - Do not include in any program-level averages or weighted metrics
 - Do not rank as top or bottom performer
 - Do not apply traffic-light benchmarking
-- Do list them in an appendix table with a standard note:
-  "Low volume (< 100 sends) — metrics not statistically significant"
+- Exclude from all averages — low volume (< 100 sends), metrics not statistically significant
 - Exception: if a low-volume email has an unusually high Abort or Bounce count
   (e.g. 3 hard bounces on 7 sends = 43% bounce rate), this IS worth flagging
   as a data quality signal even though volume is low
