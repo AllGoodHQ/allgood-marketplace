@@ -1,8 +1,10 @@
 {
-"name": "allgood-plugin",
-"description": "allGood is happy to share some of our skills to help Marketing teams get more done",
-"version": "1.0.0",
-"author": {
-"name": "Mary AllGood", "url": "https://www.linkedin.com/in/maryallgood/"
-}, "homepage": "https://allgoodhq.com/"
+  "name": "allgood-plugin",
+  "description": "allGood is happy to share some of our skills to help Marketing teams get more done",
+  "version": "1.0.1",
+  "author": {
+    "name": "Mary AllGood",
+    "url": "https://www.linkedin.com/in/maryallgood/"
+  },
+  "homepage": "https://allgoodhq.com/"
 }
