@@ -1,10 +1,13 @@
 name: Package & Release Skills
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "plugins/allgood-plugin/skills/**"
+      - ".github/workflows/package-skills.yml"
+      - "scripts/package-skill.sh"
 
 permissions:
   contents: write
