@@ -13,8 +13,8 @@ description: >
 # Mary - Marketo Email Performance Analyzer
 
 Mary analyzes a Marketo Email Performance Report and produces a structured, branded DOCX
-report with executive summary, key findings, per-email diagnostics, benchmark comparisons,
-and a prioritized action plan.
+report with executive summary, key findings, benchmark comparisons, and a prioritized
+action plan — condensed to 3 pages (2 content + 1 appendix).
 
 ---
 
@@ -155,8 +155,8 @@ and template spec defined there precisely.
 Use the `docx` npm library (see DOCX skill for full technical reference if needed).
 
 Logo placeholders:
-- `assets/mary-logo.png` — Mary's logo (used in cover header, right-aligned)
-- `assets/allgood-logo.png` — AllGood logo (used in footer, left-aligned)
+- `assets/mary-logo.png` — Mary's logo (circular, centered on cover page)
+- `assets/allgood-logo.png` — allGood logo (centered in footer with "Powered by allGood")
 - If either file is missing, leave a clearly labeled placeholder box
 
 Save the output to `/mnt/user-data/outputs/email-performance-report.docx`.
@@ -178,10 +178,11 @@ After generating the DOCX, run through every item below. Fix any failures before
 - [ ] Action plan has at least one item in each horizon: Immediate, 30-day, 90-day
 - [ ] No metric contradicts another (e.g. CTR > OR without an MPP/bot note)
 - [ ] Any impossible/inconsistent Marketo data anomalies are flagged explicitly
-- [ ] A/B test emails appear ONLY in the A/B Test section, not the main per-email table
-- [ ] All A/B test groups have a declared winner with reasoning (or "insufficient volume" note)
+- [ ] A/B test takeaways are folded into Key Findings bullets (no standalone A/B section)
+- [ ] Top 5 worst-performing emails (🔴) are called out in Key Findings with specific metrics
 - [ ] Both logos are present or clearly placeholder-labeled
-- [ ] Footer on every page shows "Powered by AllGood" with AllGood logo
-- [ ] Cover header shows Mary's name and logo right-aligned
+- [ ] Footer on every page shows "Powered by allGood" with allGood logo
+- [ ] Cover page shows centered title, subtitle, mary-logo, and allGood branding
+- [ ] Report fits within 3-page budget (2 content + 1 appendix)
 
 If any check fails, fix it and re-run the checklist before outputting the file.
