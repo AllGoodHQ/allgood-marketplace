@@ -2,6 +2,8 @@
 
 A Claude Code plugin marketplace by [AllGood](https://allgoodhq.com/) featuring **Mary**, an AI-powered Marketo Email Performance Analyzer.
 
+[![Download Mary Skill](https://img.shields.io/github/v/release/AllGoodHQ/allgood-marketplace?label=mary-email-performance.skill&style=flat-square)](https://github.com/AllGoodHQ/allgood-marketplace/releases/latest/download/mary-email-performance.skill)
+
 ## Install
 
 ```shell
