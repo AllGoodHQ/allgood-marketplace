@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/umairakeel/tmp/skills_stuff/skills/packages/**)",
+      "Read(//Users/umairakeel/tmp/skills_stuff/skills/**)",
+      "Bash(ASDF_PYTHON_VERSION=3.13.1 python3:*)",
+      "Bash(ASDF_PYTHON_VERSION=3.10.13 python3:*)"
+    ]
+  }
+}
