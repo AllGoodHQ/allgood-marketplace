@@ -131,7 +131,7 @@ This briefing doc uses lightweight branding — no full cover page.
 
 - **Header (every page):** "Campaign Briefing" text left-aligned in pink `#dc4393`, 10pt.
 - **Footer (every page):** Right-aligned single line: Mary logo (`assets/mary-logo.png`,
-  ~0.4" / 576 DXA width) followed by "powered by" text in gray `#888888` 9pt, followed
+  ~0.2" / 288 DXA width) followed by "powered by" text in gray `#888888` 9pt, followed
   by allGood logo (`assets/allgood-logo.png`, ~0.3" / 432 DXA width). All on the same
   line, vertically centered. The layout reads: `[Mary logo] powered by [allGood logo]`.
   If logo files are missing, use text fallbacks: "Mary powered by allGood" in gray.
