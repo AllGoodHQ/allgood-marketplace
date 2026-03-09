@@ -124,11 +124,14 @@ Validation checks:
 - All IDs are unique (no duplicates)
 - ID format valid (letters, numbers, dash, underscore only)
 - Required attributes present (mktoName on modules and editable elements)
+- `{{my.token}}` in HTML attributes outside editable regions (won't resolve via fullContent API)
 
 **Warnings:**
 - Lowercase attribute names (`mktoname` vs `mktoName`)
 - Unused variables (declared but not referenced)
 - Missing default values
+- Variable IDs not in camelCase (e.g. `bg_color` → `bgColor`)
+- URL variable defaults missing protocol (`https://`)
 
 Output format:
 
@@ -321,8 +324,13 @@ python3 scripts/list_modules.py template.html | jq '.[] | select(.name | contain
 - Best practices and common patterns
 
 **`references/validation_rules.md`** - Validation criteria for templates
-- Critical errors (container rules, ID uniqueness, required attributes)
-- Non-critical warnings (case sensitivity, unused variables)
+- Critical errors (container rules, ID uniqueness, required attributes, unresolved tokens)
+- Non-critical warnings (case sensitivity, unused variables, naming conventions)
+
+**`references/variable-naming-conventions.md`** - Variable ID naming guide
+- camelCase convention with examples
+- URL variable rules (protocol in defaults, `${variableId}` vs `{{my.token}}`)
+- Why tokens in `href` attributes won't resolve via fullContent API, with fix options
 
 **`references/email-rendering-rules.md`** - Email HTML rendering rules by client
 - Outlook Word engine constraints and workarounds (ghost tables, VML, padding rules)

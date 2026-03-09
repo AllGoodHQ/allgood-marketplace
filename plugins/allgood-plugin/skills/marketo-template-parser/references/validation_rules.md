@@ -45,6 +45,16 @@
 11. **All mktoVideo elements require: `class`, `id`, `mktoName`**
 12. **Container requires: `class`, `id`**
 
+### Token Resolution Rules
+13. **Unresolved tokens in HTML attributes outside editable regions**
+    - `{{my.*}}`, `{{lead.*}}`, `{{company.*}}` in attribute values (href, src, style, etc.) that are NOT inside a `mktoText` ancestor will NOT resolve via Marketo's fullContent API
+    - The literal token string (e.g. `{{my.Speaker1-URL}}`) appears in the sent email
+    - `{{system.*}}` tokens (e.g. `{{system.unsubscribeLink}}`) are excluded — they resolve at send-time regardless
+    - Fix Option A: Declare an `mktoString` variable in `<head>` and use `${variableId}` in the attribute
+    - Fix Option B: Wrap the element in a `mktoText` div so the entire block is editable
+    - Check: Regex scan body attributes for `{{(my|lead|company)\.[^}]+}}`, skip elements with `mktoText` ancestry
+    - See `references/variable-naming-conventions.md` for full details and examples
+
 ---
 
 ## Non-Critical Warnings (Best Practices)
@@ -73,6 +83,19 @@
     - May cause empty content in preview mode
     - Check: `<meta>` tags missing `default` attribute
 
+### Variable Naming
+17. **Variable naming conventions (camelCase preferred)**
+    - Variable IDs should use camelCase (e.g. `ctaUrl` not `cta_url` or `cta-url`)
+    - Structure: `[context][Descriptor]` (e.g. `speaker1Url`, `heroBackgroundColor`)
+    - Match sibling `mktoText` element ID prefixes for consistency
+    - Check: Regex `[_-][a-zA-Z]` on variable IDs
+    - See `references/variable-naming-conventions.md` for full guide
+
+18. **URL variable defaults missing protocol**
+    - `mktoString` variables whose ID or name contains "url", "link", or "href" should have defaults starting with `https://`
+    - Missing protocol can cause double-protocol bugs (e.g. `https://https://example.com`)
+    - Check: Non-empty defaults on URL-like variables that don't start with `http://` or `https://`
+
 ---
 
 ## Validation Script Output Format
@@ -83,7 +106,7 @@
   "score": 0-100,
   "errors": [
     {
-      "type": "duplicate_id|missing_container|nested_modules|invalid_id_format|missing_attribute",
+      "type": "duplicate_id|missing_container|nested_modules|invalid_id_format|missing_attribute|unresolved_token_in_attribute",
       "message": "Human-readable error message",
       "line": 123,
       "element": "heroModule"
@@ -91,7 +114,7 @@
   ],
   "warnings": [
     {
-      "type": "case_sensitivity|unused_variable|missing_default",
+      "type": "case_sensitivity|unused_variable|missing_default|naming_convention|url_missing_protocol",
       "message": "Human-readable warning message",
       "line": 456,
       "element": "global_preheader"

@@ -44,7 +44,7 @@ Follow it precisely when constructing tables, labels, and layout.
 **Section Types:**
 
 1. Program Details
-2. Event Basics
+2. Shared Content: Event Details (or other shared content type)
 3. Email 1 Content / Email 2 Content / Email 3 Content
 4. Landing Page Content
 
@@ -402,8 +402,8 @@ regardless of row alternation.
 
 1. **Program Details** (section header)
    - Instructions Box (Mary Instructions)
-2. **Event Basics** (section header)
-   - 2-column table with core event info
+2. **Shared Content: Event Details** (section header)
+   - 2-column table with core event info (shared across emails and LP)
 3. **Email Content** (section header)
    - Helper text about screenshots
    - Image placeholder
@@ -537,5 +537,5 @@ When creating a new briefing document:
 - [ ] For copy sections, include varied formatting
 - [ ] Follow token naming convention
 - [ ] Add cell margins for breathing room (120 DXA top/bottom, 140 DXA left/right)
-- [ ] Header: Mary logo + "Campaign Briefing"
-- [ ] Footer: allGood logo + "Powered by allGood"
+- [ ] Header: "Campaign Briefing" left-aligned in pink
+- [ ] Footer: right-aligned single line — Mary logo + "powered by" + allGood logo

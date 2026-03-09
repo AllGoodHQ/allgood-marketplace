@@ -55,9 +55,9 @@ Try the MCP tools first. If they're not available, fall back to manual input.
 ### Path A: MCP Tools Available
 
 1. Extract the campaign name from the user's request
-2. Call `allgood_list_campaigns(name="<campaign name>")` to search for the campaign
+2. Call `marketo_get_programs_by_name(name="<campaign name>")` to search for the program
 3. If multiple results, show the list and ask the user to pick one
-4. If one result, confirm the match with the user and grab the `targetUri`
+4. If one result, confirm the match with the user and grab the program `id`
 5. If no results, broaden the search (shorter name) or ask the user to clarify
 
 ### Path B: No MCP Tools
@@ -72,7 +72,7 @@ Try the MCP tools first. If they're not available, fall back to manual input.
    - Which emails/deliverables exist
 4. If they paste text, parse the token names and any values provided
 
-Do NOT proceed to Step 1 until you have either a `targetUri` (Path A) or a parsed
+Do NOT proceed to Step 1 until you have either a program `id` (Path A) or a parsed
 token list (Path B).
 
 ---
@@ -81,19 +81,20 @@ token list (Path B).
 
 ### Path A: MCP Tools
 
-1. Call `allgood_get_target_details(target_uri="<targetUri>", include_attributes=true)`
+1. Call `marketo_get_program_details(programId=<id>)` to get the full program info
 2. From the response, extract:
-   - **Campaign name** and description
-   - **Deliverables list** — each deliverable's name, description, and targetUri
-   - **Attributes** — the `_schema` row tells you column meanings:
-     `[value, required, set, validated, description]`
-   - For each attribute: note the token name, current value, whether it's required,
-     whether it's been set, and its description
-3. Determine the **campaign type** from the deliverables:
-   - Single email → 1 deliverable
-   - Multi-touch email → multiple deliverables named "Email 1", "Email 2", "Email 3"
-   - Event + LP → deliverables include an email and a landing page
-4. Map tokens to deliverables — tokens with `em2-` prefix belong to Email 2,
+   - **Program name** and description
+   - **Program type** and channel
+   - **Tokens** (My Tokens) — each token's name, type, and current value
+3. Call `marketo_get_email_details(programId=<id>)` to get the email assets in the program
+4. From the email details, extract:
+   - **Deliverables list** — each email's name, subject line, and status
+   - Which emails exist (Email 1, Email 2, Email 3, etc.)
+5. Determine the **campaign type** from the deliverables:
+   - Single email → 1 email asset
+   - Multi-touch email → multiple emails named "Email 1", "Email 2", "Email 3"
+   - Event + LP → assets include an email and a landing page
+6. Map tokens to deliverables — tokens with `em2-` prefix belong to Email 2,
    `em3-` prefix to Email 3, unprefixed to Email 1 or shared
 
 ### Path B: Manual Input
@@ -128,12 +129,12 @@ Use the `docx` npm library (see DOCX skill for full technical reference).
 
 This briefing doc uses lightweight branding — no full cover page.
 
-- **Header (every page):** Small Mary logo (`assets/mary-logo.png`, ~0.5" / 720 DXA
-  width) left-aligned. "Campaign Briefing" text right-aligned in pink `#dc4393`, 10pt.
-  If logo file is missing, use text "Mary" in pink bold instead.
-- **Footer (every page):** Centered allGood logo (`assets/allgood-logo.png`, ~0.4" /
-  576 DXA width) with "Powered by allGood" text below in gray `#888888`, 9pt.
-  If logo file is missing, use text "Powered by allGood" only.
+- **Header (every page):** "Campaign Briefing" text left-aligned in pink `#dc4393`, 10pt.
+- **Footer (every page):** Right-aligned single line: Mary logo (`assets/mary-logo.png`,
+  ~0.4" / 576 DXA width) followed by "powered by" text in gray `#888888` 9pt, followed
+  by allGood logo (`assets/allgood-logo.png`, ~0.3" / 432 DXA width). All on the same
+  line, vertically centered. The layout reads: `[Mary logo] powered by [allGood logo]`.
+  If logo files are missing, use text fallbacks: "Mary powered by allGood" in gray.
 - **Section headers:** Pink `#dc4393`, Arial 16pt bold — consistent with allGood brand.
 
 ### Document Structure
@@ -158,8 +159,10 @@ Build the structure based on campaign type:
 
 1. **Program Details** section header
    - Instructions Box
-2. **Event Basics** section header
+2. **Shared Content: Event Details** section header
    - Two-column table (Table Type 2) with event tokens (date, time, location, etc.)
+   - Use the "Shared Content:" prefix for any section whose tokens are shared across
+     multiple deliverables (e.g. event details used by both emails and landing pages)
 3. **Email Content** section header
    - Image Placeholder
    - Content table (Type 3 or Type 4)
@@ -229,8 +232,8 @@ After generating the DOCX, verify every item below. Fix any failures before deli
 - [ ] All required tokens from the campaign are present — none missing
 - [ ] Pre-populated values match the source data exactly
 - [ ] Empty required fields are clearly empty (not filled with placeholder text)
-- [ ] Header shows Mary logo (or text fallback) + "Campaign Briefing"
-- [ ] Footer shows allGood logo (or text fallback) + "Powered by allGood"
+- [ ] Header shows "Campaign Briefing" left-aligned in pink
+- [ ] Footer shows right-aligned single line: Mary logo + "powered by" + allGood logo
 - [ ] Page margins: 1" top/bottom (1440 DXA), 0.75" left/right (1080 DXA)
 - [ ] Arial font used throughout
 - [ ] Table width is 10,320 DXA (fills page within margins)

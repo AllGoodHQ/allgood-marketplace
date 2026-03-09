@@ -359,6 +359,108 @@ def build_variable_lookup(soup: BeautifulSoup) -> Dict[str, dict]:
     return lookup
 
 
+def find_unresolved_tokens_in_attributes(soup: BeautifulSoup, html_str: str) -> List[dict]:
+    """
+    Find {{my/lead/company.token}} references in HTML attributes that are
+    outside any mktoText editable region. These tokens will NOT resolve via
+    Marketo's fullContent API.
+
+    Excludes {{system.*}} tokens (they resolve at send-time regardless).
+    Only scans <body> elements (tokens in <head> meta defaults are valid).
+
+    Args:
+        soup: BeautifulSoup object
+        html_str: Raw HTML string (for line number lookup)
+
+    Returns:
+        List of dicts: [{token, attribute, tag, line}]
+    """
+    token_pattern = re.compile(r'\{\{(my|lead|company)\.[^}]+\}\}')
+    issues = []
+
+    body = soup.find('body')
+    if not body:
+        return issues
+
+    def _is_inside_editable(element) -> bool:
+        """Check if element is a descendant of (not the element itself) a mktoText region."""
+        for parent in element.parents:
+            if parent.name and parent != element:
+                parent_classes = parent.get('class', [])
+                if any(c in ('mktoText', 'mktotext') for c in parent_classes):
+                    return True
+        return False
+
+    for element in body.find_all(True):  # All tags
+        if _is_inside_editable(element):
+            continue
+
+        for attr_name, attr_value in element.attrs.items():
+            # Attribute values can be strings or lists
+            val = attr_value if isinstance(attr_value, str) else ' '.join(attr_value)
+            matches = token_pattern.findall(val)
+            if not matches:
+                continue
+            # Re-find the full token strings for the message
+            full_matches = token_pattern.finditer(val)
+            for m in full_matches:
+                token_str = m.group(0)
+                line_num = get_line_number(html_str, token_str)
+                issues.append({
+                    'token': token_str,
+                    'attribute': attr_name,
+                    'tag': element.name,
+                    'line': line_num
+                })
+
+    return issues
+
+
+def check_url_variable_defaults(soup: BeautifulSoup, html_str: str) -> List[dict]:
+    """
+    Check that mktoString variables that appear to be URLs have defaults
+    starting with http:// or https://.
+
+    Args:
+        soup: BeautifulSoup object
+        html_str: Raw HTML string (for line number lookup)
+
+    Returns:
+        List of dicts: [{var_id, default_value, line}]
+    """
+    url_keywords = re.compile(r'(url|link|href)', re.IGNORECASE)
+    issues = []
+
+    variables = find_variables(soup)
+    for var in variables:
+        var_type = extract_variable_type(var)
+        if var_type != 'mktoString':
+            continue
+
+        var_id = var.get('id', '')
+        var_name = var.get('mktoName') or var.get('mktoname', '')
+        default = var.get('default', '')
+
+        # Only check variables whose id or name suggests a URL
+        if not url_keywords.search(var_id) and not url_keywords.search(var_name):
+            continue
+
+        # Skip empty, placeholder, or already-valid defaults
+        if not default or default in ('#', '', 'https://', 'http://'):
+            continue
+        if default.startswith('http://') or default.startswith('https://'):
+            continue
+
+        line_num = find_element_line_number(html_str, var_id)
+        issues.append({
+            'var_id': var_id,
+            'default_value': default,
+            'line': line_num
+        })
+
+    return issues
+
+
 def is_style_variable(var_id: str, var_info: dict) -> bool:
     """
     Determine whether a variable is a styling/layout variable (True) or a

@@ -162,6 +162,48 @@ def validate_template(file_path: str) -> dict:
                 'line': line_num
             })
 
+    # Check 9: Unresolved tokens in HTML attributes outside editable regions
+    token_issues = parser_utils.find_unresolved_tokens_in_attributes(soup, html_str)
+    for issue in token_issues:
+        errors.append({
+            'type': 'unresolved_token_in_attribute',
+            'message': (
+                f"Token '{issue['token']}' in {issue['attribute']} attribute "
+                f"of <{issue['tag']}> is outside any editable region — will NOT "
+                f"resolve via fullContent API. Use ${{{issue['token'].split('.')[1].rstrip('}')}}} "
+                f"with an mktoString variable, or wrap in a mktoText div."
+            ),
+            'line': issue['line']
+        })
+
+    # Check 10: Variable naming conventions (camelCase preferred)
+    naming_pattern = re.compile(r'[_-][a-zA-Z]')
+    for var in variables:
+        var_id = var.get('id', '')
+        if var_id and naming_pattern.search(var_id):
+            # Build a camelCase suggestion
+            def _to_camel(match):
+                return match.group(0)[-1].upper()
+            suggested = naming_pattern.sub(_to_camel, var_id)
+            line_num = parser_utils.find_element_line_number(html_str, var_id)
+            warnings.append({
+                'type': 'naming_convention',
+                'message': f"Variable '{var_id}' uses underscores/dashes — camelCase preferred (e.g. '{suggested}')",
+                'line': line_num
+            })
+
+    # Check 11: URL variable defaults missing protocol
+    url_issues = parser_utils.check_url_variable_defaults(soup, html_str)
+    for issue in url_issues:
+        warnings.append({
+            'type': 'url_missing_protocol',
+            'message': (
+                f"Variable '{issue['var_id']}' appears to be a URL but "
+                f"default '{issue['default_value']}' is missing protocol (https://)"
+            ),
+            'line': issue['line']
+        })
+
     # === STATISTICS ===
     stats = {
         'modules': len(modules),
