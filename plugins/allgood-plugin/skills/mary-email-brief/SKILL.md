@@ -6,6 +6,11 @@ description: >
   "create a campaign brief", "briefing for [campaign name]", "token template",
   "fill-in doc", "brief for 3Touch", or any request to generate a structured document
   that maps Marketo program tokens to email/LP content fields.
+  Also triggers when the user provides an unstructured document (raw email copy, campaign
+  brief, email templates doc) AND an empty briefing template DOCX — and wants the content
+  mapped into the structured format. Phrases like "fill in this template", "convert this
+  doc", "map this into the brief", "here's the copy and here's the template", or any
+  combination of an unstructured doc + a template file should trigger this skill.
   Always use this skill when the user mentions building or creating a brief, even if
   they just say "brief me on [campaign]" — if it involves Marketo tokens and campaign
   content, this skill applies.
@@ -14,9 +19,9 @@ description: >
 # Mary — Campaign Briefing Document Builder
 
 Mary builds structured DOCX briefing documents for Marketo campaigns. The briefing doc
-maps every program token to a labeled, numbered table row that teams fill in — with
-pre-populated values where available, visual markers linking rows to email screenshots,
-and consistent formatting across all campaign types.
+maps every program token to a labeled, numbered table row — with pre-populated values,
+visual markers linking rows to email screenshots, and consistent formatting across all
+campaign types.
 
 ---
 
@@ -24,90 +29,210 @@ and consistent formatting across all campaign types.
 
 The user has requested: $ARGUMENTS
 
-Adapt the output based on what the user asked:
-- **Campaign name mentioned** (e.g. "briefing for 3Touch") → look up that campaign
-  by name and build the brief from its deliverables and tokens
-- **"Just Email 1"** or specific deliverable → filter to only that deliverable's tokens
-- **"Include screenshots"** → add image placeholder rows before each content table
-- **"Quick brief"** or **"just the tokens"** → skip the Instructions Box and image
-  placeholders. Output only the numbered content tables with token fields.
-- **No specific ask / generic request** → run the full default workflow (all steps)
+**First, determine which mode applies:**
 
-Always complete Step 0 (campaign identification) and Step 1 (details) regardless of
-the request. The adaptation applies to Step 2.
+- **Document Conversion Mode** — user provides an unstructured doc (raw copy, campaign
+  brief, email templates) AND an empty briefing template DOCX → follow the
+  Document Conversion workflow below
+- **Campaign Build Mode** — user provides a campaign name (with or without MCP access)
+  → follow the Campaign Build workflow below
+
+If it's ambiguous, ask: "Do you have an empty briefing template you'd like me to fill,
+or should I build the structure from scratch?"
 
 ---
 
-## How to Use This Skill
+## Reference Files
 
-This skill has one reference file. Load it at the right step.
-
-| Reference File | Load When |
+| File | Load When |
 |---|---|
-| `references/briefing-format.md` | Step 2 — when building the DOCX |
+| `references/briefing-format.md` | When building or writing any DOCX output |
 
 ---
 
-## Step 0: Identify the Campaign
+## Document Conversion Mode
 
-Try the MCP tools first. If they're not available, fall back to manual input.
+Use this when the user provides both an unstructured doc and an empty template DOCX.
+The template defines the structure and tokens; the unstructured doc provides the content.
 
-### Path A: MCP Tools Available
+### Step 1: Read the Template
+
+The template is a binary DOCX. Extract its text using Python:
+
+```python
+import zipfile
+from xml.etree import ElementTree as ET
+
+with zipfile.ZipFile('path/to/template.docx') as z:
+    with z.open('word/document.xml') as doc:
+        tree = ET.parse(doc)
+        ns = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+        for para in tree.iter(ns+'p'):
+            parts = [r.text for r in para.iter(ns+'t') if r.text]
+            if parts:
+                print(''.join(parts))
+```
+
+From the extracted text, build a **token inventory** — an ordered list of every token
+in the template:
+
+| Row # | Token | Label | Helper Text |
+|---|---|---|---|
+| 1 | `{{my.em1-SubjectLine}}` | Subject Line | 40-65 characters |
+| ... | ... | ... | ... |
+
+Also extract from the Instructions Box:
+- **Clone Program** name (pre-filled in template — keep as-is)
+- **New Program** field (blank — fill with campaign name from unstructured doc)
+- **New Folder**, **Requester Email** (pre-filled — keep as-is)
+
+### Step 2: Read the Unstructured Doc
+
+Extract the text from the unstructured doc the same way (Python zipfile if DOCX, or
+read directly if plain text/paste).
+
+Then identify and label every piece of content:
+
+| Content Type | What to look for |
+|---|---|
+| Campaign name | Document title, heading, or first prominent label |
+| Subject line(s) | Lines labeled "Subject:", email subject fields |
+| Preheader | Lines labeled "Preheader:", preview text |
+| Body copy sections | Paragraphs of email body — may be labeled "Email 1 Body", "Copy", etc. |
+| CTA text | Button labels, "Register Now", "Find out more", "CTA:" lines |
+| CTA URLs | URLs following or paired with CTA text |
+| Images | References to banner images, URLs for image assets |
+| Intro/closing text | Introductory or sign-off copy outside the main body |
+| Event details | Date, time, location fields |
+| Multi-email signals | "Email 1:", "Email 2:", numbered sections, "em2-" / "em3-" references |
+
+For multi-email unstructured docs (e.g. 3 emails in one file), segment the content by
+email before mapping. Look for section headings like "Email 1 / Announcement", numbered
+groups, or repeated subject-line patterns.
+
+### Step 3: Map Content to Tokens
+
+Work through the token inventory from Step 1 in order. For each token, find the best
+matching content from Step 2.
+
+**Matching logic:**
+
+| Token name contains... | Map from unstructured doc... |
+|---|---|
+| `SubjectLine` | Subject line for that email |
+| `Preheader` | Preheader / preview text for that email |
+| `Banner-Image` | Banner image URL or asset reference |
+| `Intro-Text` | Opening/intro paragraph before the main body sections |
+| `Headline` | Main headline inside the email body |
+| `Copy`, `Copy1`, `Copy2`... | Body copy sections, in order |
+| `CTA1Text`, `CTA2Text`... | CTA button labels, in order |
+| `CTA1URL`, `CTA2URL`... | URLs paired with each CTA, in order |
+| `copy1-image`, `copy2-image`... | Image URLs paired with each body section |
+| `closing-copy` | Closing/sign-off copy at the end of the email |
+| `em2-*` | Same logic, but from Email 2 content |
+| `em3-*` | Same logic, but from Email 3 content |
+
+**Rules:**
+- If a token has a clear match → pre-populate the value cell verbatim from the source
+- If a token has no match in the unstructured doc → leave the value cell empty
+- Do not invent or paraphrase content — copy it exactly as written
+- If the same content could match multiple tokens, prefer the most specific match
+  (e.g. a short intro sentence → `Intro-Text`, not `Copy1`)
+
+After mapping, show the user a summary before building:
+
+```
+Campaign: [name from unstructured doc]
+Template: [template filename]
+Tokens mapped: [N] of [total] ([X] pre-populated, [Y] left empty)
+
+Mapped:
+  {{my.em1-SubjectLine}} → "Your November insights from Samsara Canada"
+  {{my.em1-Copy1}}       → "DATA INSIGHTS\nNew data reveals..."
+  ...
+
+Left empty:
+  {{my.em1-Banner-Image}}
+  ...
+```
+
+Ask the user to confirm or correct before building.
+
+### Step 4: Build the DOCX
+
+**Read `references/briefing-format.md` now.** Follow the format specification precisely.
+
+Build the DOCX using the template's structure as the blueprint:
+- Replicate the exact section headers, row order, row numbers, and table types from
+  the template
+- Fill in the value column for each token using the mapping from Step 3
+- Fill in "New Program" in the Instructions Box with the campaign name
+- Leave all unmapped value cells empty (do not add placeholder text)
+
+Apply all branding, fonts, colors, and layout from `references/briefing-format.md`.
+Use the `docx` npm library.
+
+**Branding:**
+- **Header (every page):** "Campaign Briefing" left-aligned, pink `#dc4393`, 10pt
+- **Footer (every page):** Right-aligned — Mary logo (`assets/mary-logo.png`, 288 DXA)
+  + "powered by" gray `#888888` 9pt + allGood logo (`assets/allgood-logo.png`, 432 DXA).
+  If logos missing, use text: "Mary powered by allGood" in gray.
+- **Section headers:** Pink `#dc4393`, Arial 16pt bold
+
+Save to `/mnt/user-data/outputs/<campaign-name>-briefing.docx`
+(sanitize: lowercase, hyphens, no special chars).
+
+### Step 5: Validation
+
+Run the checklist from the Validation Checklist section below before delivering.
+
+---
+
+## Campaign Build Mode
+
+Use this when the user provides a campaign name and wants a briefing built from scratch
+(via Marketo MCP or manual token input). No template file is provided.
+
+### Step 0: Identify the Campaign
+
+Try MCP tools first. Fall back to manual input if unavailable.
+
+**Path A: MCP Tools Available**
 
 1. Extract the campaign name from the user's request
-2. Call `marketo_get_programs_by_name(name="<campaign name>")` to search for the program
+2. Call `marketo_get_programs_by_name(name="<campaign name>")` to search
 3. If multiple results, show the list and ask the user to pick one
-4. If one result, confirm the match with the user and grab the program `id`
-5. If no results, broaden the search (shorter name) or ask the user to clarify
+4. If one result, confirm and grab the program `id`
+5. If no results, broaden the search or ask the user to clarify
 
-### Path B: No MCP Tools
+**Path B: No MCP Tools**
 
-1. Ask the user for the campaign name
-2. Ask them to provide the token details via **either**:
-   - A screenshot of the Marketo program's My Tokens tab
-   - A pasted list of token names and values
-3. If they provide a screenshot, read it and extract:
-   - Token names (e.g. `{{my.SubjectLine}}`, `{{my.em2-Copy}}`)
-   - Current values (if visible)
-   - Which emails/deliverables exist
-4. If they paste text, parse the token names and any values provided
+1. Ask for the campaign name
+2. Ask for token details via a screenshot of the Marketo My Tokens tab or a pasted list
+3. Extract: token names (e.g. `{{my.SubjectLine}}`), current values, deliverable names
 
-Do NOT proceed to Step 1 until you have either a program `id` (Path A) or a parsed
-token list (Path B).
+Do not proceed to Step 1 until you have a program `id` (Path A) or a parsed token list
+(Path B).
 
----
+### Step 1: Get Campaign Details
 
-## Step 1: Get Campaign Details
+**Path A: MCP Tools**
 
-### Path A: MCP Tools
+1. Call `marketo_get_program_details(programId=<id>)` — extract program name, type,
+   channel, and all tokens (name, type, current value)
+2. Call `marketo_get_email_details(programId=<id>)` — extract deliverable names,
+   subject lines, statuses
+3. Determine campaign type: Single Email / Multi-Touch Email / Event + LP
+4. Map tokens to deliverables by prefix (`em2-` → Email 2, `em3-` → Email 3,
+   unprefixed → Email 1 or shared)
 
-1. Call `marketo_get_program_details(programId=<id>)` to get the full program info
-2. From the response, extract:
-   - **Program name** and description
-   - **Program type** and channel
-   - **Tokens** (My Tokens) — each token's name, type, and current value
-3. Call `marketo_get_email_details(programId=<id>)` to get the email assets in the program
-4. From the email details, extract:
-   - **Deliverables list** — each email's name, subject line, and status
-   - Which emails exist (Email 1, Email 2, Email 3, etc.)
-5. Determine the **campaign type** from the deliverables:
-   - Single email → 1 email asset
-   - Multi-touch email → multiple emails named "Email 1", "Email 2", "Email 3"
-   - Event + LP → assets include an email and a landing page
-6. Map tokens to deliverables — tokens with `em2-` prefix belong to Email 2,
-   `em3-` prefix to Email 3, unprefixed to Email 1 or shared
+**Path B: Manual Input**
 
-### Path B: Manual Input
+1. Group tokens by email prefix to infer deliverable count
+2. Determine campaign type using the same logic
 
-1. From the screenshot or pasted text, build the same data structure:
-   - List of token names → group by email prefix (unprefixed, em2-, em3-)
-   - Any values already visible
-   - Infer deliverable count from token prefixes
-2. Determine campaign type using the same logic as Path A
+**For both paths**, print a summary and ask the user to confirm:
 
-### For Both Paths
-
-Print a summary for the user before proceeding:
 ```
 Campaign: [name]
 Type: [Multi-Touch Email / Event + LP / Single Email]
@@ -115,31 +240,20 @@ Deliverables: [list]
 Total tokens: [N] ([X] pre-populated, [Y] need input)
 ```
 
-Ask the user to confirm before building the doc.
-
----
-
-## Step 2: Build the DOCX Briefing Document
+### Step 2: Build the DOCX Briefing Document
 
 **Read `references/briefing-format.md` now.** Follow the format specification precisely.
 
-Use the `docx` npm library (see DOCX skill for full technical reference).
+Use the `docx` npm library.
 
-### Branding (Subtle)
+**Branding:**
+- **Header (every page):** "Campaign Briefing" left-aligned, pink `#dc4393`, 10pt
+- **Footer (every page):** Right-aligned — Mary logo (`assets/mary-logo.png`, 288 DXA)
+  + "powered by" gray `#888888` 9pt + allGood logo (`assets/allgood-logo.png`, 432 DXA).
+  If logos missing, use text: "Mary powered by allGood" in gray.
+- **Section headers:** Pink `#dc4393`, Arial 16pt bold
 
-This briefing doc uses lightweight branding — no full cover page.
-
-- **Header (every page):** "Campaign Briefing" text left-aligned in pink `#dc4393`, 10pt.
-- **Footer (every page):** Right-aligned single line: Mary logo (`assets/mary-logo.png`,
-  ~0.2" / 288 DXA width) followed by "powered by" text in gray `#888888` 9pt, followed
-  by allGood logo (`assets/allgood-logo.png`, ~0.3" / 432 DXA width). All on the same
-  line, vertically centered. The layout reads: `[Mary logo] powered by [allGood logo]`.
-  If logo files are missing, use text fallbacks: "Mary powered by allGood" in gray.
-- **Section headers:** Pink `#dc4393`, Arial 16pt bold — consistent with allGood brand.
-
-### Document Structure
-
-Build the structure based on campaign type:
+**Document Structure** — build based on campaign type:
 
 #### Multi-Touch Email Campaigns
 
@@ -211,14 +325,16 @@ When using Table Type 4, assign row numbers following the standard mapping:
 
 Grouped fields share the same number and same row background color.
 
-### Output
-
 Save to `/mnt/user-data/outputs/<campaign-name>-briefing.docx`
-(sanitize the campaign name for the filename — lowercase, hyphens, no special chars).
+(sanitize: lowercase, hyphens, no special chars).
+
+### Step 3: Validation
+
+Run the checklist below before delivering.
 
 ---
 
-## Step 3: Validation Checklist
+## Validation Checklist
 
 After generating the DOCX, verify every item below. Fix any failures before delivering.
 
