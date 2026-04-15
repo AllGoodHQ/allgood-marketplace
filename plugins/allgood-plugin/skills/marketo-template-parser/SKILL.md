@@ -1,5 +1,5 @@
 ---
-name: marketo-parser
+name: marketo-template-parser
 description: Work with Marketo Email 2.0 templates — parse, validate, lint for client-rendering issues, and edit. Use when the user asks about Marketo templates, wants to review quality, fix a template issue, add or modify modules, check Outlook/Gmail/dark-mode rendering, or answer Email 2.0 syntax questions. Handles large templates (4,000+ lines) via incremental parsing scripts, and can fetch email HTML directly from Marketo via MCP to read and write changes. Use this skill whenever the user mentions Marketo templates, mktoModule, mktoContainer, mktoText/mktoImg, email HTML rendering quirks, or shares an `.html` file that looks like a Marketo template — even if they don't explicitly ask to "parse" it.
 ---
 
