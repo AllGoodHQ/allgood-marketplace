@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Detect Marketo template version (1.0 vs 2.0) and analyze structure.
+Detect Marketo template version (1.0 vs 2.0).
 
-For v1.0 templates: lists mktEditable regions, extracts {{my.tokens}},
-and provides upgrade guidance for migrating to Email 2.0.
+Lightweight version gate — run this first on an unknown template to decide
+whether the rest of the skill's scripts (which target Email 2.0) apply.
+
+Returns JSON with `version` ("1.0", "2.0", or "unknown") and a message.
+For v1.0 templates, also reports region_count and token_count so the model
+has quick context for framing the upgrade conversation.
 
 Usage:
     python3 detect_version.py <template.html>
@@ -45,57 +49,21 @@ def detect_version(file_path: str) -> dict:
     if not is_v1:
         return {"version": "unknown", "message": "No Marketo template markers found (no mktEditable, mktoModule, or mktoContainer)."}
 
-    # Analyze v1.0 template
-    regions = []
-    for el in v1_editables:
-        el_id = el.get('id', '')
-        el_name = el.get('mktoname', el_id)
-        el_html = str(el)
-        line = parser_utils.get_line_number(html, f'id="{el_id}"') or 0
+    # Count regions and tokens — enough context without the full migration guide
+    token_count = len(set(re.findall(r'\{\{my\.([^}:]+)', html)))
 
-        # Extract {{my.Token}} references within this region
-        tokens = sorted(set(re.findall(r'\{\{my\.([^}:]+)', el_html)))
-
-        regions.append({
-            "id": el_id,
-            "name": el_name,
-            "line": line,
-            "tokens": tokens,
-            "html_lines": el_html.count('\n') + 1
-        })
-
-    # All tokens across entire template
-    all_tokens = sorted(set(re.findall(r'\{\{my\.([^}:]+)', html)))
-
-    result = {
+    return {
         "version": "1.0",
-        "regions": regions,
-        "region_count": len(regions),
-        "tokens": all_tokens,
-        "token_count": len(all_tokens),
-        "upgrade": {
-            "summary": "This is a Marketo Email 1.0 template. Email 2.0 adds modular structure, variables, and drag-and-drop editing.",
-            "steps": [
-                "1. Add a mktoContainer wrapper: <table class=\"mktoContainer\" id=\"container\">",
-                "2. Convert each mktEditable div to a mktoModule: <tr class=\"mktoModule\" id=\"moduleId\" mktoName=\"Module Name\">",
-                "3. Replace {{my.Token}} references with <meta> variable declarations in <head>",
-                "4. Add mktoName attributes to all modules and editable elements",
-                "5. Use mktoText, mktoImg, mktoSnippet classes for editable content areas",
-                "6. Validate with: python3 scripts/validate.py <template.html>"
-            ],
-            "region_mapping": [
-                {
-                    "v1_id": r["id"],
-                    "v1_name": r["name"],
-                    "suggested_v2": f'<tr class="mktoModule" id="{r["id"]}" mktoName="{r["name"]}">',
-                    "tokens_to_convert": r["tokens"]
-                }
-                for r in regions
-            ]
-        }
+        "message": (
+            "This template uses Email 1.0 (mktEditable regions + {{my.Token}}). "
+            "Email 2.0 uses a different paradigm (mktoContainer + mktoModule + <meta> "
+            "variables + ${variableId}). This skill targets 2.0 — upgrade the template "
+            "before using the other scripts. For upgrade guidance, see "
+            "references/marketo-template-reference.md."
+        ),
+        "region_count": len(v1_editables),
+        "token_count": token_count,
     }
-
-    return result
 
 
 def main():

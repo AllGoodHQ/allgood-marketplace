@@ -2,8 +2,9 @@
 """
 Generate a JSON module registry from a Marketo Email 2.0 template.
 
-Pure data extraction (no LLM needed). Output matches the schema used by
-email-variant-generator/module-registry.json.
+Pure data extraction (no LLM needed). Produces a machine-readable mapping
+of each module to its editable elements and variable references — useful
+for downstream tooling, diffing templates, or feeding a subagent.
 
 Usage:
     python3 scripts/generate_registry.py <template.html>
