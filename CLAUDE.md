@@ -24,8 +24,10 @@ scripts/package-skill.sh          # Packages a skill dir into a .skill zip
 |-------|------|
 | `mary-email-performance` | Prompt-only (DOCX report from Marketo CSV) |
 | `mary-email-brief` | Prompt-only (campaign briefing DOCX) |
+| `mary-program-documentation` | Prompt-only (Marketo program one-pager DOCX) |
 | `marketo-template-parser` | Prompt + Python scripts (HTML template audit) |
 | `marketo-tokens` | Prompt-only (Marketo token CRUD via MCP) |
+| `allgood-email-writing` | Prompt-only (marketing email + sequence copy, markdown out) |
 
 ## Conventions
 
